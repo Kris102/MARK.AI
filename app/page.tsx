@@ -2,8 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-
+import { getSupabase } from '@/lib/supabaseClient'
 export default function Home() {
   const [weight, setWeight] = useState('')
   const [sleep, setSleep] = useState('')
@@ -23,7 +22,7 @@ export default function Home() {
   if (saving) return
   setSaving(true)
   setSaved(false)
-
+const supabase = getSupabase()
   try {
     const today = new Date().toISOString().slice(0, 10)
 
