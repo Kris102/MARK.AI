@@ -49,7 +49,6 @@ export default function Home() {
 if (weight) {
   setLastWeight(Number(weight))
 }
-
       console.log('DAILY LOG RESULT', res1)
       console.log('HABIT LOG RESULT', res2)
 
