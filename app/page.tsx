@@ -11,37 +11,59 @@ export default function Home() {
     Workout: false,
     CHECKLIST2: false,
   })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const [lastWeight, setLastWeight] = useState<number | null>(null)
 
   async function handleSave() {
-    // 🔥 Supabase is imported ONLY at runtime
-    const { createClient } = await import('@supabase/supabase-js')
+    console.log('SAVE CLICKED')
+    setSaving(true)
+    setSaved(false)
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+  
+    try {
+      const { createClient } = await import('@supabase/supabase-js')
 
-    const today = new Date().toISOString().slice(0, 10)
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
 
-    await supabase.from('daily_logs').insert({
-      date: today,
-      weight: weight ? Number(weight) : null,
-      sleep_hours: sleep ? Number(sleep) : null,
-      note,
-    })
+      const today = new Date().toISOString().slice(0, 10)
 
-    await supabase.from('habit_logs').insert(
-      Object.entries(habits).map(([habit_name, done]) => ({
+      const res1 = await supabase.from('daily_logs').insert({
         date: today,
-        habit_name,
-        done,
-      }))
-    )
+        weight: weight ? Number(weight) : null,
+        sleep_hours: sleep ? Number(sleep) : null,
+        note,
+      })
 
-    setWeight('')
-    setSleep('')
-    setNote('')
-    setHabits({ Workout: false, CHECKLIST2: false })
+      const res2 = await supabase.from('habit_logs').insert(
+        Object.entries(habits).map(([habit_name, done]) => ({
+          date: today,
+          habit_name,
+          done,
+        }))
+      )
+if (weight) {
+  setLastWeight(Number(weight))
+}
+
+      console.log('DAILY LOG RESULT', res1)
+      console.log('HABIT LOG RESULT', res2)
+
+      setWeight('')
+      setSleep('')
+      setNote('')
+      setHabits({ Workout: false, CHECKLIST2: false })
+      setSaved(true)
+setTimeout(() => setSaved(false), 1500)
+    } catch (err) {
+      console.error('SAVE ERROR', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -53,55 +75,107 @@ export default function Home() {
         backgroundPosition: 'center',
       }}
     >
-      <div className="w-full max-w-md bg-black rounded-3xl p-6 space-y-5 shadow-2xl">
-        <h1 className="text-xl font-semibold text-white">MARK.AI V1.1</h1>
+     <div className="w-full max-w-md bg-black/75 backdrop-blur-md rounded-3xl p-6 space-y-6 shadow-2xl text-white">
 
-        <input
-          value={weight}
-          onChange={e => setWeight(e.target.value)}
-          placeholder="BODY WEIGHT"
-          className="w-full bg-white text-black p-3 rounded-xl"
-        />
+  {/* HEADER */}
+  <div className="space-y-1">
+    <h1 className="text-2xl font-semibold">MARK.AI</h1>
+    <p className="text-sm text-white/60">
+      {new Date().toDateString()}
+    </p>
+  </div>
 
+  {/* TODAY SNAPSHOT */}
+  <div className="grid grid-cols-2 gap-3">
+    <div className="bg-white/10 rounded-xl p-3">
+      <p className="text-xs text-white/60">BODY WEIGHT</p>
+      <p className="text-lg font-medium">
+  {lastWeight !== null ? `${lastWeight} kg` : '—'}
+</p>
+    </div>
+    <div className="bg-white/10 rounded-xl p-3">
+      <p className="text-xs text-white/60">Last Workout</p>
+      <p className="text-lg font-medium">Upper</p>
+    </div>
+  </div>
+
+  {/* INPUT */}
+  
+  <div className="space-y-3">
+    <input
+      value={weight}
+      onChange={e => setWeight(e.target.value)}
+      placeholder="Body Weight"
+      className="w-full bg-white text-black p-3 rounded-xl"
+    />
+
+    <div className="grid grid-cols-2 gap-3">
+      {Object.keys(habits).map(habit => (
         <button
-          onClick={() => setHabits(h => ({ ...h, Workout: !h.Workout }))}
-          className={`w-full p-3 rounded-xl ${
-            habits.Workout ? 'bg-white text-black' : 'border border-white text-white'
+          key={habit}
+          onClick={() =>
+            setHabits(h => ({ ...h, [habit]: !h[habit as keyof typeof h] }))
+          }
+          className={`p-3 rounded-xl text-sm ${
+            habits[habit as keyof typeof habits]
+              ? 'bg-white text-black'
+              : 'border border-white/40'
           }`}
         >
-          Workout
+          {habit}
         </button>
+      ))}
+    </div>
 
-        <button
-          onClick={() => setHabits(h => ({ ...h, CHECKLIST2: !h.CHECKLIST2 }))}
-          className={`w-full p-3 rounded-xl ${
-            habits.CHECKLIST2 ? 'bg-white text-black' : 'border border-white text-white'
-          }`}
-        >
-          CHECKLIST2
-        </button>
+    <input
+      value={sleep}
+      onChange={e => setSleep(e.target.value)}
+      placeholder="Sleep (hrs)"
+      className="w-full bg-white text-black p-3 rounded-xl"
+    />
 
-        <input
-          value={sleep}
-          onChange={e => setSleep(e.target.value)}
-          placeholder="Sleep hours"
-          className="w-full bg-white text-black p-3 rounded-xl"
-        />
+    <textarea
+      value={note}
+      onChange={e => setNote(e.target.value)}
+      placeholder="Quick note"
+      className="w-full bg-white text-black p-3 rounded-xl"
+      rows={2}
+    />
+  </div>
 
-        <textarea
-          value={note}
-          onChange={e => setNote(e.target.value)}
-          placeholder="Note"
-          className="w-full bg-white text-black p-3 rounded-xl"
-        />
+  {/* ACTION */}
+ <button
+  type="button"
+  onClick={handleSave}
+  disabled={saving}
+  className="
+    w-full
+    border border-white
+    bg-black
+    text-white
+    p-4
+    rounded-xl
+    text-lg
+    font-medium
+    transition
+    active:scale-[0.97]
+    disabled:opacity-50
+  "
+>
+  {saving ? 'SAVING' : 'SAVE INPUT'}
+</button>
+{saved && (
+  <p className="text-green-400 text-sm text-center animate-fade">
+    Saved ✓
+  </p>
+)}
+  {/* CONSISTENCY PREVIEW (placeholder) */}
+  <div className="bg-white/10 rounded-xl p-3 text-sm text-white/60">
+    Consistency graph coming here →
+  </div>
 
-        <button
-          onClick={handleSave}
-          className="w-full bg-white text-black p-4 rounded-xl text-lg font-medium"
-        >
-          SAVE INPUT
-        </button>
-      </div>
+</div>
     </main>
   )
 }
+
