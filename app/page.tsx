@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function Home() {
   const [weight, setWeight] = useState('')
@@ -16,55 +17,54 @@ export default function Home() {
 
   const [lastWeight, setLastWeight] = useState<number | null>(null)
 
-  async function handleSave() {
-    console.log('SAVE CLICKED')
-    setSaving(true)
-    setSaved(false)
+ async function handleSave() {
+  console.log('SAVE CLICKED')
 
-  
-    try {
-      const { createClient } = await import('@supabase/supabase-js')
+  if (saving) return
+  setSaving(true)
+  setSaved(false)
 
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+  try {
+    const today = new Date().toISOString().slice(0, 10)
 
-      const today = new Date().toISOString().slice(0, 10)
-
-      const res1 = await supabase.from('daily_logs').insert({
+    const { error: dailyError } = await supabase
+      .from('daily_logs')
+      .insert({
         date: today,
         weight: weight ? Number(weight) : null,
-        sleep_hours: sleep ? Number(sleep) : null,
+        sleep_hours: sleep ? Number(weight) : null,
         note,
       })
 
-      const res2 = await supabase.from('habit_logs').insert(
+    if (dailyError) throw dailyError
+
+    const { error: habitError } = await supabase
+      .from('habit_logs')
+      .insert(
         Object.entries(habits).map(([habit_name, done]) => ({
           date: today,
           habit_name,
           done,
         }))
       )
-if (weight) {
-  setLastWeight(Number(weight))
-}
-      console.log('DAILY LOG RESULT', res1)
-      console.log('HABIT LOG RESULT', res2)
 
-      setWeight('')
-      setSleep('')
-      setNote('')
-      setHabits({ Workout: false, CHECKLIST2: false })
-      setSaved(true)
-setTimeout(() => setSaved(false), 1500)
-    } catch (err) {
-      console.error('SAVE ERROR', err)
-    } finally {
-      setSaving(false)
-    }
+    if (habitError) throw habitError
+
+    if (weight) setLastWeight(Number(weight))
+
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+
+    setWeight('')
+    setSleep('')
+    setNote('')
+    setHabits({ Workout: false, CHECKLIST2: false })
+  } catch (err) {
+    console.error('SAVE ERROR', err)
+  } finally {
+    setSaving(false)
   }
-
+}
   return (
     <main
       className="min-h-screen flex items-center justify-center p-6"
