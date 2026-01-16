@@ -144,25 +144,15 @@ setTimeout(() => setSaved(false), 1500)
   </div>
 
   {/* ACTION */}
- <button
+<button
   type="button"
-  onClick={handleSave}
-  disabled={saving}
-  className="
-    w-full
-    border border-white
-    bg-black
-    text-white
-    p-4
-    rounded-xl
-    text-lg
-    font-medium
-    transition
-    active:scale-[0.97]
-    disabled:opacity-50
-  "
+  onClick={() => {
+    alert('BUTTON CLICKED')
+    setSaved(true)
+  }}
+  className="w-full border border-white bg-black text-white p-4 rounded-xl"
 >
-  {saving ? 'SAVING' : 'SAVE INPUT'}
+  TEST CLICK
 </button>
 {saved && (
   <p className="text-green-400 text-sm text-center animate-fade">
