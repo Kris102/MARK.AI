@@ -1,9 +1,38 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getSupabase } from '@/lib/supabaseClient'
-export default function Home() {
+export default function Home() 
+{
+  useEffect(() => {
+  async function fetchLastWeight() {
+    try {
+      const supabase = getSupabase()
+
+      const { data, error } = await supabase
+        .from('daily_logs')
+        .select('weight')
+        .not('weight', 'is', null)
+        .order('date', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (error) {
+        console.error('FETCH LAST WEIGHT ERROR', error)
+        return
+      }
+
+      if (data?.weight !== null) {
+        setLastWeight(data.weight)
+      }
+    } catch (err) {
+      console.error('INIT LOAD ERROR', err)
+    }
+  }
+
+  fetchLastWeight()
+}, [])
   const [weight, setWeight] = useState('')
   const [sleep, setSleep] = useState('')
   const [note, setNote] = useState('')
@@ -26,16 +55,23 @@ const supabase = getSupabase()
   try {
     const today = new Date().toISOString().slice(0, 10)
 
-    const { error: dailyError } = await supabase
-      .from('daily_logs')
-      .insert({
-        date: today,
-        weight: weight ? Number(weight) : null,
-        sleep_hours: sleep ? Number(weight) : null,
-        note,
-      })
+ const { error: dailyError } = await supabase
+  .from('daily_logs')
+  .upsert(
+    {
+      date: today,
+      weight: weight ? Number(weight) : null,
+      sleep_hours: sleep ? Number(sleep) : null,
+      note,
+    },
+    { onConflict: 'date' }
+  )
 
-    if (dailyError) throw dailyError
+if (dailyError) {
+  alert(JSON.stringify(dailyError))
+console.error(dailyError)
+  throw dailyError
+}
 
     const { error: habitError } = await supabase
       .from('habit_logs')
