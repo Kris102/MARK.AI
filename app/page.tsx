@@ -1,28 +1,30 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { getSupabase } from '@/lib/supabaseClient'
+
+export const dynamic = 'force-dynamic'
 
 export default function Home() {
   const [weight, setWeight] = useState('')
   const [sleep, setSleep] = useState('')
   const [note, setNote] = useState('')
   const [habits, setHabits] = useState({
-    CHECKLIST1: false,
+    Workout: false,
     CHECKLIST2: false,
   })
 
   async function handleSave() {
+    const supabase = getSupabase()
     const today = new Date().toISOString().slice(0, 10)
 
-    await supabase.from('daily_logs').insert({
+    await (supabase as any).from('daily_logs').insert({
       date: today,
       weight: weight ? Number(weight) : null,
       sleep_hours: sleep ? Number(sleep) : null,
       note,
     })
 
-    await supabase.from('habit_logs').insert(
+    await (supabase as any).from('habit_logs').insert(
       Object.entries(habits).map(([habit_name, done]) => ({
         date: today,
         habit_name,
@@ -33,7 +35,7 @@ export default function Home() {
     setWeight('')
     setSleep('')
     setNote('')
-    setHabits({ CHECKLIST1: false, CHECKLIST2: false })
+    setHabits({ Workout: false, CHECKLIST2: false })
     alert('Saved')
   }
 
@@ -57,10 +59,10 @@ export default function Home() {
         />
 
         <button
-          onClick={() => setHabits(h => ({ ...h, CHECKLIST1: !h.CHECKLIST1 }))}
-          className={`w-full p-3 rounded-xl ${habits.CHECKLIST1 ? 'bg-black text-white' : 'border'}`}
+          onClick={() => setHabits(h => ({ ...h, Workout: !h.Workout }))}
+          className={`w-full p-3 rounded-xl ${habits.Workout ? 'bg-black text-white' : 'border'}`}
         >
-          CHECKLIST1
+          Workout
         </button>
 
         <button
