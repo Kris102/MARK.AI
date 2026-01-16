@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -7,8 +8,8 @@ export default function Home() {
   const [sleep, setSleep] = useState('')
   const [note, setNote] = useState('')
   const [habits, setHabits] = useState({
-    Workout: false,
-    Japanese: false,
+    CHECKLIST1: false,
+    CHECKLIST2: false,
   })
 
   async function handleSave() {
@@ -32,7 +33,7 @@ export default function Home() {
     setWeight('')
     setSleep('')
     setNote('')
-    setHabits({ Workout: false, Japanese: false })
+    setHabits({ CHECKLIST1: false, CHECKLIST2: false })
     alert('Saved')
   }
 
@@ -56,17 +57,17 @@ export default function Home() {
         />
 
         <button
-          onClick={() => setHabits(h => ({ ...h, Workout: !h.Workout }))}
-          className={`w-full p-3 rounded-xl ${habits.Workout ? 'bg-black text-white' : 'border'}`}
+          onClick={() => setHabits(h => ({ ...h, CHECKLIST1: !h.CHECKLIST1 }))}
+          className={`w-full p-3 rounded-xl ${habits.CHECKLIST1 ? 'bg-black text-white' : 'border'}`}
         >
-          Workout
+          CHECKLIST1
         </button>
 
         <button
-          onClick={() => setHabits(h => ({ ...h, Japanese: !h.Japanese }))}
-          className={`w-full p-3 rounded-xl ${habits.Japanese ? 'bg-black text-white' : 'border'}`}
+          onClick={() => setHabits(h => ({ ...h, CHECKLIST2: !h.CHECKLIST2 }))}
+          className={`w-full p-3 rounded-xl ${habits.CHECKLIST2 ? 'bg-black text-white' : 'border'}`}
         >
-          Japanese
+          CHECKLIST2
         </button>
 
         <input
